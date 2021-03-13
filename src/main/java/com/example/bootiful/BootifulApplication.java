@@ -1,9 +1,6 @@
 package com.example.bootiful;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -20,6 +17,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @SpringBootApplication
 public class BootifulApplication {
@@ -27,13 +25,10 @@ public class BootifulApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BootifulApplication.class, args);
 	}
-
 }
 
-@Data
+
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
 class Customer {
 
 	@Id
@@ -42,6 +37,42 @@ class Customer {
 
 	private String name;
 
+	public Customer() {
+	}
+
+	public Customer(Integer id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Customer customer = (Customer) o;
+		return Objects.equals(id, customer.id) && Objects.equals(name, customer.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, name);
+	}
 }
 
 interface CustomerRepository extends JpaRepository<Customer, Integer> {
@@ -57,10 +88,13 @@ class CustomHealthIndicator implements HealthIndicator {
 }
 
 @RestController
-@RequiredArgsConstructor
 class CustomerRestController {
 
 	private final CustomerRepository customerRepository;
+
+	CustomerRestController(CustomerRepository customerRepository) {
+		this.customerRepository = customerRepository;
+	}
 
 	@GetMapping("/customers")
 	Collection<Customer> get() {
@@ -69,8 +103,11 @@ class CustomerRestController {
 }
 
 @Component
-@RequiredArgsConstructor
-class Runner implements ApplicationRunner {
+class CustomerRunner implements ApplicationRunner {
+
+	public CustomerRunner(CustomerRepository repos) {
+		this.repos = repos;
+	}
 
 	private final CustomerRepository repos;
 
